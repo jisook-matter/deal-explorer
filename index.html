@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Pricing Explorer · Matter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#16191B; --ink2:#1D2124; --body:#4A5054; --muted:#6A7176; --line:#E7E9EB; --soft:#F6F7F8; --white:#fff;
+  --green:#43B02A; --greenD:#205C40; --blue:#3E8DD6; --blueD:#175787; --orange:#F19E21; --orangeSoft:#FEF5E6;
+  --r-lg:20px; --r-md:16px; --r-sm:12px; --pill:999px;
+  --shadow:0 1px 2px rgba(16,24,32,.05),0 8px 24px rgba(16,24,32,.06);
+}
+/* market accent: waste = green, water = blue (brand architecture) */
+[data-market="waste"]{ --acc:#43B02A; --accD:#205C40; --accSoft:#EEF7EA; --seg1:#317826; --seg2:#5CC44A; }
+[data-market="water"]{ --acc:#3E8DD6; --accD:#175787; --accSoft:#EAF3FB; --seg1:#175787; --seg2:#3E8DD6; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Poppins,system-ui,sans-serif;color:var(--ink2);background:var(--white);-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:inherit}
+.wrap{max-width:1200px;margin:0 auto;padding:0 32px}
+.mockbar{background:var(--ink);color:#C9CDD0;font-size:12.5px;text-align:center;padding:9px 16px}
+.mockbar b{color:#fff;font-weight:600}
+
+/* nav */
+.nav{border-bottom:1px solid var(--line);background:#fff;position:relative;z-index:5}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:72px;gap:16px}
+.logo{display:flex;align-items:baseline;gap:12px}
+.logo .wm{font-weight:700;font-size:26px;letter-spacing:-1.2px;color:var(--greenD)}
+.logo .wm i{font-style:normal;color:var(--green)}
+.logo .tag{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:5px 11px;border-radius:var(--pill);background:var(--soft)}
+.prep{text-align:right;font-size:13px;color:var(--muted);line-height:1.45}
+.prep b{color:var(--ink2);font-weight:600}
+
+/* hero */
+.hero{padding:56px 0 36px}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--accD)}
+.hero h1{font-size:clamp(34px,4.4vw,52px);line-height:1.06;letter-spacing:-.025em;font-weight:700;color:var(--ink);margin-top:12px;max-width:760px}
+.hero p{margin-top:14px;font-size:17px;color:var(--body);max-width:620px;line-height:1.55}
+
+/* layout */
+.grid{display:grid;grid-template-columns:400px 1fr;gap:28px;align-items:start;padding-bottom:40px}
+.panel{background:var(--soft);border-radius:var(--r-lg);padding:28px;position:sticky;top:20px}
+.field+.field{margin-top:26px}
+.label{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600;color:var(--ink2);margin-bottom:10px}
+.label small{font-weight:400;color:var(--muted);font-size:12px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:#E9ECEE;border-radius:var(--pill);padding:4px}
+.seg button{padding:10px 0;border-radius:var(--pill);font-size:14px;font-weight:500;color:var(--body);transition:background .2s,color .2s,box-shadow .2s}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(16,24,32,.12)}
+.seg.terms button{font-size:13px}
+.dev{display:grid;gap:10px}
+.dev button{text-align:left;background:#fff;border-radius:var(--r-sm);padding:14px 16px;border:1.5px solid transparent;display:flex;gap:12px;align-items:center;transition:border-color .2s}
+.dev button .dot{width:10px;height:10px;border-radius:50%;border:2px solid #C5CBCF;flex:none}
+.dev button[aria-pressed="true"]{border-color:var(--acc)}
+.dev button[aria-pressed="true"] .dot{border-color:var(--acc);background:var(--acc);box-shadow:0 0 0 3px var(--accSoft)}
+.dev b{display:block;font-size:15px;font-weight:600;color:var(--ink)}
+.dev span{font-size:12.5px;color:var(--muted)}
+.qty{display:flex;align-items:center;gap:10px}
+.qty input{width:110px;min-width:0;font:inherit;font-size:20px;font-weight:600;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:var(--r-sm);padding:9px 14px}
+.qty input:focus{outline:none;border-color:var(--acc)}
+.qty input::-webkit-outer-spin-button,.qty input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}.qty input{-moz-appearance:textfield}
+.qty .step{width:40px;height:44px;border-radius:var(--r-sm);background:#fff;border:1.5px solid var(--line);font-size:18px;font-weight:500}
+.bands{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:12px}
+.bands div{font-size:11px;color:var(--muted);text-align:center}
+.bands i{display:block;height:6px;border-radius:3px;background:#DCE0E3;margin-bottom:6px}
+.bands .on i{background:var(--acc)}
+.bands .on{color:var(--ink2);font-weight:600}
+.tiers{display:grid;gap:8px}
+.tiers button{display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:var(--r-sm);padding:13px 16px;border:1.5px solid transparent;text-align:left}
+.tiers button[aria-pressed="true"]{border-color:var(--acc)}
+.tiers b{font-size:14.5px;font-weight:600;color:var(--ink)}
+.tiers em{font-style:normal;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accD);background:var(--accSoft);padding:3px 8px;border-radius:var(--pill);margin-left:8px}
+.tiers span{font-size:13px;color:var(--muted)}
+.tiers span strong{color:var(--ink2);font-weight:600}
+.note{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
+.y1{margin-top:22px;display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--ink2);line-height:1.5;background:#fff;border-radius:var(--r-sm);padding:12px 14px}
+.y1 svg{flex:none;margin-top:2px}
+
+/* results */
+.stack{display:grid;gap:20px;grid-template-columns:minmax(0,1fr)}
+.stack>*,.twocol>*{min-width:0}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:28px}
+.card h3{font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px}
+.total{background:var(--ink);color:#fff;border-radius:var(--r-lg);padding:32px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end;position:relative;overflow:hidden}
+.total::after{content:"";position:absolute;right:-80px;top:-80px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,var(--acc) 0%,transparent 65%);opacity:.22}
+.total .k{font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:#9AA1A6}
+.total .v{font-size:clamp(44px,5.4vw,64px);font-weight:700;letter-spacing:-.03em;line-height:1;margin-top:10px}
+.total .s{margin-top:12px;font-size:15px;color:#C9CDD0}
+.total .s b{color:#fff;font-weight:600}
+.cta{display:flex;flex-direction:column;gap:10px;position:relative;z-index:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:var(--pill);padding:13px 22px;font-size:14px;font-weight:600;text-decoration:none;white-space:nowrap}
+.btn.primary{background:var(--green);color:#fff}
+.btn.ghost{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.22)}
+.bar{display:flex;gap:2px;height:14px;border-radius:7px;overflow:hidden;margin:6px 0 18px}
+.bar i{display:block;height:100%}
+.bar i:first-child{border-radius:7px 0 0 7px}.bar i:last-child{border-radius:0 7px 7px 0}
+.rows{display:grid}
+.row{display:grid;grid-template-columns:1fr auto;gap:16px;padding:14px 0;border-top:1px solid var(--line);align-items:baseline}
+.row:first-child{border-top:0;padding-top:0}
+.row .n{font-size:15px;font-weight:500;color:var(--ink2);display:flex;align-items:center;gap:10px}
+.row .n .sw{width:10px;height:10px;border-radius:3px;flex:none}
+.row .d{font-size:12.5px;color:var(--muted);margin-top:3px;grid-column:1}
+.row .a{font-size:16px;font-weight:600;color:var(--ink);text-align:right}
+.row .a.inc{color:var(--accD)}
+.row .a.save{color:var(--accD)}
+.row.sum{border-top:1.5px solid var(--ink2);padding-top:16px}
+.row.sum .n{font-weight:600}.row.sum .a{font-size:20px}
+.nudge{display:flex;gap:14px;align-items:flex-start;background:var(--orangeSoft);border-radius:var(--r-md);padding:18px 20px;font-size:14px;line-height:1.55;color:var(--ink2)}
+.nudge .ic{width:28px;height:28px;border-radius:50%;background:var(--orange);color:#fff;display:grid;place-items:center;font-weight:700;flex:none}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.cmp{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:end;height:190px;margin-top:6px}
+.cmp button{display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;height:100%;gap:8px;position:relative}
+.cmp .val{font-size:13px;font-weight:600;color:var(--ink2);text-align:center}
+.cmp .col{background:#DCE0E3;border-radius:4px 4px 0 0;transition:height .35s ease,background .2s}
+.cmp button[aria-pressed="true"] .col{background:var(--acc)}
+.cmp .t{font-size:12.5px;font-weight:600;color:var(--ink2);text-align:center;border-top:1px solid var(--line);padding-top:8px}
+.cmp .f{font-size:11px;color:var(--accD);font-weight:600;text-align:center;margin-top:-4px;height:15px;white-space:nowrap}
+.cmp .t{white-space:nowrap}
+.chart{position:relative;margin-top:6px}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:#fff;font-size:12.5px;padding:8px 11px;border-radius:10px;white-space:nowrap;transform:translate(-50%,-115%);opacity:0;transition:opacity .12s}
+.tip b{font-weight:600}
+table.tiers-t{width:100%;border-collapse:separate;border-spacing:0;font-size:14px}
+.tiers-t th,.tiers-t td{padding:12px 14px;text-align:left;vertical-align:top;border-top:1px solid var(--line)}
+.tiers-t thead th{border-top:0;font-weight:600;color:var(--ink);font-size:15px}
+.tiers-t thead th small{display:block;font-weight:400;color:var(--muted);font-size:12.5px;margin-top:2px}
+.tiers-t td:first-child,.tiers-t th:first-child{color:var(--body);width:34%}
+.tiers-t .sel{background:var(--accSoft)}
+.tiers-t thead .sel{border-radius:12px 12px 0 0}
+.tiers-t tbody tr:last-child .sel{border-radius:0 0 12px 12px}
+.yes{color:var(--accD);font-weight:600}.no{color:#B5BBBF}
+.share{display:flex;gap:10px;align-items:center}
+.share input{flex:1;min-width:0;font:inherit;font-size:13px;color:var(--body);background:var(--soft);border:0;border-radius:var(--pill);padding:12px 18px}
+.btn.dark{background:var(--ink);color:#fff}
+.foot{border-top:1px solid var(--line);padding:24px 0 48px;font-size:12.5px;color:var(--muted);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.sticky{display:none}
+
+/* style notes */
+.notes{background:var(--soft);padding:56px 0}
+.notes h2{font-size:28px;letter-spacing:-.02em;margin:10px 0 8px}
+.notes>.wrap>p{color:var(--body);max-width:700px;line-height:1.6}
+.ng{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:28px}
+.ng .card{padding:22px}
+.ng h4{font-size:15px;font-weight:600;margin-bottom:10px;color:var(--ink)}
+.ng ul{list-style:none;display:grid;gap:7px;font-size:13.5px;color:var(--body);line-height:1.5}
+.sws{display:flex;flex-wrap:wrap;gap:8px}
+.sws span{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--body);background:#fff;border:1px solid var(--line);border-radius:var(--pill);padding:5px 12px 5px 6px}
+.sws i{width:18px;height:18px;border-radius:50%;display:block}
+
+@media (max-width:980px){
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .grid>*{min-width:0}
+  .panel{position:static}
+  .twocol{grid-template-columns:1fr}
+  .ng{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .wrap{padding:0 16px}
+  .nav .wrap{height:auto;padding-top:14px;padding-bottom:14px;flex-direction:column;align-items:flex-start;gap:6px}
+  .prep{text-align:left}
+  .hero{padding:32px 0 20px}
+  .hero p{font-size:15.5px}
+  .panel,.card{padding:20px}
+  .total{grid-template-columns:1fr;padding:24px}
+  .cta{flex-direction:row;flex-wrap:wrap}
+  .cmp{gap:6px}.cmp .val{font-size:11px}
+  .tiers-t{font-size:12.5px}.tiers-t th,.tiers-t td{padding:9px 5px}.tiers-t thead th{font-size:13.5px}.tiers-t td:first-child,.tiers-t th:first-child{width:auto}
+  .share{flex-direction:column;align-items:stretch}
+  .sticky{display:flex;position:fixed;left:12px;right:12px;bottom:12px;z-index:20;background:var(--ink);color:#fff;border-radius:18px;padding:12px 14px 12px 18px;align-items:center;justify-content:space-between;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .sticky small{display:block;font-size:11px;color:#9AA1A6;letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+  .sticky b{font-size:20px;font-weight:700;letter-spacing:-.02em}
+  .sticky a{font-size:13px;font-weight:600;background:var(--green);color:#fff;border-radius:999px;padding:10px 14px;text-decoration:none}
+  body{padding-bottom:84px}
+}
+</style>
+</head>
+<body data-market="water">
+
+<div class="mockbar"><b>Design mock-up for Adam.</b> Layout and styling only. Prices are sample values for two configurations; the real pricing logic stays in the Deal Explorer.</div>
+
+<header class="nav"><div class="wrap">
+  <div class="logo"><span class="wm">matter<i>.</i></span><span class="tag">Pricing explorer</span></div>
+  <div class="prep">Prepared for <b>[Customer name]</b><br>Indicative pricing · valid until <b>[date]</b></div>
+</div></header>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="eyebrow" id="eyebrow">Water · Stormwater sensing</div>
+    <h1>Build your indicative price.</h1>
+    <p>Choose your market, device, quantity and contract length. Your price updates as you go, and you can share this exact setup with your team.</p>
+  </section>
+
+  <div class="grid">
+    <!-- inputs -->
+    <aside class="panel" aria-label="Your setup">
+      <div class="field">
+        <div class="label">Market</div>
+        <div class="seg" role="group" aria-label="Market">
+          <button data-market="waste" aria-pressed="false">Waste</button>
+          <button data-market="water" aria-pressed="true">Water</button>
+        </div>
+      </div>
+      <div class="field">
+        <div class="label">Device</div>
+        <div class="dev" id="devices" role="group" aria-label="Device"></div>
+      </div>
+      <div class="field">
+        <div class="label">Quantity <small id="bandLbl">Band 301–1,000</small></div>
+        <div class="qty">
+          <button class="step" data-step="-1" aria-label="Fewer devices">−</button>
+          <input id="qty" type="number" inputmode="numeric" aria-label="Number of devices" value="800">
+          <button class="step" data-step="1" aria-label="More devices">+</button>
+          <span class="note" style="margin:0">devices</span>
+        </div>
+        <div class="bands" id="bands" aria-hidden="true"></div>
+        <div class="note" id="qtyNote"></div>
+      </div>
+      <div class="field">
+        <div class="label">Contract length</div>
+        <div class="seg terms" id="terms" role="group" aria-label="Contract length"></div>
+      </div>
+      <div class="field">
+        <div class="label">MatterCare from month 13</div>
+        <div class="tiers" id="tiers" role="group" aria-label="MatterCare tier"></div>
+      </div>
+      <div class="y1">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="var(--acc)"/><path d="M4.5 8.2l2.3 2.3 4.7-4.8" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span><b>Year 1 is covered.</b> The first 12 months of MatterCare Premium are included in the hardware price, whichever tier you choose.</span>
+      </div>
+    </aside>
+
+    <!-- results -->
+    <div class="stack">
+      <section class="total" id="totalCard" aria-live="polite">
+        <div>
+          <div class="k">Total contract value</div>
+          <div class="v" id="tTotal">$830,400</div>
+          <div class="s" id="tSub"><b>$17.30</b> per device per month · 60-month term</div>
+        </div>
+        <div class="cta">
+          <a class="btn primary" href="#">Request a formal quote</a>
+          <a class="btn ghost" href="#">Download PDF</a>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>What makes up your price</h3>
+        <div class="bar" id="bar" role="img"></div>
+        <div class="rows" id="rows"></div>
+      </section>
+
+      <div class="nudge" id="nudge"><span class="ic">↑</span><span id="nudgeTxt"></span></div>
+
+      <div class="twocol">
+        <section class="card">
+          <h3>Cost per device per month, by term</h3>
+          <div class="cmp" id="cmp"></div>
+          <p class="note" style="margin-top:14px">Longer terms spread the hardware cost further and earn free MatterCare months at the end of the term.</p>
+        </section>
+        <section class="card">
+          <h3>Cumulative cost over the term</h3>
+          <div class="chart" id="chart"><div class="tip" id="tip"></div></div>
+        </section>
+      </div>
+
+      <section class="card">
+        <h3>Compare MatterCare tiers</h3>
+        <table class="tiers-t" id="tierTable"></table>
+      </section>
+
+      <section class="card">
+        <h3>Share this setup</h3>
+        <div class="share">
+          <input id="shareUrl" readonly aria-label="Link to this setup">
+          <button class="btn dark" id="copy">Copy link</button>
+        </div>
+        <p class="note">The link opens this exact setup. People still need the access password to see prices.</p>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer class="wrap foot">
+  <span>Indicative pricing in AUD, excluding GST. Not a formal quote.</span>
+  <span>Questions? Contact [Adam's name], [email] · 1300 236 242</span>
+</footer>
+
+<div class="sticky" aria-hidden="true"><div><small>Total contract value</small><b id="sTotal">$830,400</b></div><a href="#">Request quote</a></div>
+
+<!-- notes for Adam -->
+<section class="notes"><div class="wrap">
+  <div class="eyebrow" style="color:var(--greenD)">For Adam · style notes</div>
+  <h2>What changed, and the tokens to match matter.city</h2>
+  <p>Same content and logic as your version. The changes are layout and styling, so it reads like part of the new website.</p>
+  <div class="ng">
+    <div class="card"><h4>Layout</h4><ul>
+      <li>All inputs in one panel, including the care tier. Term cards below are a comparison, not a second control.</li>
+      <li>Total and next steps sit together at the top: request a quote, download PDF.</li>
+      <li>One "Year 1 is covered" note instead of the message repeating through the page.</li>
+      <li>Phone: sticky total bar at the bottom so the price stays visible while choosing.</li>
+    </ul></div>
+    <div class="card"><h4>Type and numbers</h4><ul>
+      <li>Poppins only. Numbers use tabular figures (<code>font-variant-numeric: tabular-nums</code>) instead of a monospace font.</li>
+      <li>H1 52/700, −2.5% tracking. Card labels 12/600 uppercase, 0.2em tracking.</li>
+      <li>Body 15–17/400 in #4A5054. Muted text #6A7176.</li>
+      <li>Big total 64/700, −3% tracking, white on the dark card.</li>
+    </ul></div>
+    <div class="card"><h4>Colour and shape</h4>
+      <div class="sws">
+        <span><i style="background:#16191B"></i>Ink #16191B</span>
+        <span><i style="background:#F6F7F8;border:1px solid #E7E9EB"></i>Soft #F6F7F8</span>
+        <span><i style="background:#E7E9EB"></i>Line #E7E9EB</span>
+        <span><i style="background:#43B02A"></i>Waste #43B02A</span>
+        <span><i style="background:#205C40"></i>#205C40</span>
+        <span><i style="background:#3E8DD6"></i>Water #3E8DD6</span>
+        <span><i style="background:#175787"></i>#175787</span>
+        <span><i style="background:#F19E21"></i>Nudge #F19E21</span>
+      </div>
+      <ul style="margin-top:12px">
+        <li>Accent follows the market: green for Waste, blue for Water. The CTA stays brand green.</li>
+        <li>Radii 20 (cards), 12 (options), pill buttons. Neutral grey cards instead of green-tinted boxes with borders.</li>
+        <li>Selected state is a 1.5px accent outline. Colour is never the only signal.</li>
+      </ul></div>
+  </div>
+</div></section>
+
+<script>
+const fmt = (n, d = 0) => "$" + n.toLocaleString("en-AU", { minimumFractionDigits: d, maximumFractionDigits: d });
+const TERMS = [12, 24, 36, 48, 60];
+const FREE = { 12: 0, 24: 0, 36: 2, 48: 6, 60: 12 };
+const BANDS = [[1, 300, "1–300"], [301, 1000, "301–1k"], [1001, 2000, "1k–2k"], [2001, 5000, "2k–5k"], [5001, Infinity, "5k+"]];
+const TIER_FEAT = {
+  rows: ["Matter app and platform", "Device monitoring", "__market", "API access", "Level-2 support with SLA", "+12 months warranty", "Device replacement", "Spares pool", "SSO", "Priority extras"],
+  Basic: [1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+  Standard: [1, 1, 1, 1, 1, 1, "25% off", 0, 0, 0],
+  Premium: [1, 1, 1, 1, 1, 1, "Included", 1, 1, 1],
+};
+// Sample values only: the bands shown in each mock-up configuration.
+const M = {
+  water: { eyebrow: "Water · Stormwater sensing", feature: "Blockage Detection",
+    devices: [["SenseMini", "Compact stormwater level sensor"], ["StormPuck", "Radar depth sensor for stormwater pits"]],
+    dev: 1, qty: 800, band: 1, unit: 690, tiers: { Basic: 78, Standard: 116, Premium: 175 }, term: 60,
+    next: { at: 1001, label: "1,001–2,000", unit: 640, std: 110 } },
+  waste: { eyebrow: "Waste · Fill-level sensing", feature: "Route Management",
+    devices: [["SenseMini", "Compact fill-level sensor for bins"], ["ThinkLid", "Smart lid sensor"]],
+    dev: 0, qty: 250, band: 0, unit: 400, tiers: { Basic: 60, Standard: 90, Premium: 160 }, term: 36,
+    next: { at: 301, label: "301–1,000", unit: 380, std: 87 } },
+};
+const S = { market: "water", dev: 1, qty: 800, term: 60, tier: "Standard" };
+const $ = (id) => document.getElementById(id);
+
+function calc(term, tier = S.tier) {
+  const m = M[S.market], hw = S.qty * m.unit, rate = m.tiers[tier];
+  const free = FREE[term], billed = Math.max(0, term - 12 - free);
+  const care = S.qty * rate * billed / 12, freeVal = S.qty * rate * free / 12;
+  const total = hw + care;
+  return { hw, care, free, freeVal, billed, rate, total, pdm: total / S.qty / term };
+}
+
+function render() {
+  const m = M[S.market];
+  document.body.dataset.market = S.market;
+  $("eyebrow").textContent = m.eyebrow;
+  document.querySelectorAll(".seg [data-market]").forEach(b => b.setAttribute("aria-pressed", b.dataset.market === S.market));
+  $("devices").innerHTML = m.devices.map((d, i) => `<button data-dev="${i}" aria-pressed="${i === S.dev}"><span class="dot"></span><span><b>${d[0]}</b><span>${d[1]}</span></span></button>`).join("");
+  const [lo, hi, lbl] = BANDS[m.band];
+  $("bandLbl").textContent = "Band " + (hi === Infinity ? lo + "+" : lo.toLocaleString() + "–" + hi.toLocaleString());
+  $("bands").innerHTML = BANDS.map((b, i) => `<div class="${i === m.band ? "on" : ""}"><i></i>${b[2]}</div>`).join("");
+  $("qtyNote").textContent = S.clamped ? `This mock-up only covers the ${lbl} band.` : "";
+  $("qty").value = S.qty;
+  $("terms").innerHTML = TERMS.map(t => `<button data-term="${t}" aria-pressed="${t === S.term}">${t} mo</button>`).join("");
+  $("tiers").innerHTML = Object.entries(m.tiers).map(([k, v]) => `<button data-tier="${k}" aria-pressed="${k === S.tier}"><b>${k}${k === "Standard" ? "<em>Popular</em>" : ""}</b><span><strong>$${v}</strong> /device/yr</span></button>`).join("");
+
+  const c = calc(S.term);
+  $("tTotal").textContent = fmt(c.total); $("sTotal").textContent = fmt(c.total);
+  $("tSub").innerHTML = `<b>${fmt(c.pdm, 2)}</b> per device per month · ${S.term}-month term`;
+
+  const pHw = c.hw / c.total * 100;
+  $("bar").innerHTML = `<i style="width:${pHw}%;background:var(--seg1)"></i>` + (c.care > 0 ? `<i style="width:${100 - pHw}%;background:var(--seg2)"></i>` : "");
+  $("bar").setAttribute("aria-label", `Hardware ${Math.round(pHw)}%, ongoing MatterCare ${100 - Math.round(pHw)}%`);
+  const dev = m.devices[S.dev][0];
+  $("rows").innerHTML = `
+    <div class="row"><div><div class="n"><span class="sw" style="background:var(--seg1)"></span>Hardware</div><div class="d">${S.qty.toLocaleString()} × ${dev} at ${fmt(m.unit)} each · includes 12 months of MatterCare Premium</div></div><div class="a">${fmt(c.hw)}</div></div>
+    <div class="row"><div><div class="n"><span class="sw" style="background:var(--seg2)"></span>MatterCare ${S.tier}, from month 13</div><div class="d">${S.qty.toLocaleString()} × $${c.rate}/yr × ${c.billed} billed months${c.billed === 0 ? " (term ends with the included year)" : ""}</div></div><div class="a">${fmt(c.care)}</div></div>
+    ${c.free ? `<div class="row"><div><div class="n">${c.free} free months of MatterCare</div><div class="d">Earned by the ${S.term}-month term and applied at the end. Worth ${fmt(c.freeVal)}, already left out of the line above.</div></div><div class="a inc">Free</div></div>` : ""}
+    <div class="row sum"><div><div class="n">Total contract value</div></div><div class="a">${fmt(c.total)}</div></div>`;
+
+  const n = m.next, add = n.at - S.qty;
+  $("nudgeTxt").innerHTML = `<b>Add ${add.toLocaleString()} devices</b> to reach the ${n.label} band. Hardware drops to <b>${fmt(n.unit)}</b> per device (save ${fmt(m.unit - n.unit)}) and Standard MatterCare to <b>$${n.std}</b>/device/yr.`;
+
+  const all = TERMS.map(t => calc(t)), max = Math.max(...all.map(a => a.pdm));
+  $("cmp").innerHTML = TERMS.map((t, i) => `<button data-term="${t}" aria-pressed="${t === S.term}" aria-label="${t} months: ${fmt(all[i].pdm, 2)} per device per month"><span class="val">${fmt(all[i].pdm, 2)}</span><span class="col" style="height:${Math.max(6, all[i].pdm / max * 120)}px"></span><span class="t">${t} mo</span><span class="f">${FREE[t] ? "+" + FREE[t] + " free" : "&nbsp;"}</span></button>`).join("");
+
+  drawChart(c);
+  tierTable(m);
+  $("shareUrl").value = `https://watermatters.ai/deal-explorer?market=${S.market}&product=${dev.toUpperCase()}&qty=${S.qty}&tier=${S.tier.toLowerCase()}&term=${S.term}`;
+}
+
+function tierTable(m) {
+  const tiers = Object.keys(m.tiers);
+  const head = `<thead><tr><th></th>${tiers.map(t => `<th class="${t === S.tier ? "sel" : ""}">${t}<small>$${m.tiers[t]} /device/yr</small></th>`).join("")}</tr></thead>`;
+  const body = TIER_FEAT.rows.map((r, i) => `<tr><td>${r === "__market" ? m.feature : r}</td>${tiers.map(t => { const v = TIER_FEAT[t][i]; return `<td class="${t === S.tier ? "sel" : ""}">${v === 1 ? '<span class="yes">✓</span>' : v ? `<span class="yes">${v}</span>` : '<span class="no">—</span>'}</td>`; }).join("")}</tr>`).join("");
+  $("tierTable").innerHTML = head + "<tbody>" + body + "</tbody>";
+}
+
+function drawChart(c) {
+  const W = 400, H = 250, L = 50, R = 10, T = 22, B = 30, T_ = S.term;
+  const per = S.qty * c.rate / 12;
+  const val = (mo) => c.hw + per * Math.min(Math.max(mo - 12, 0), c.billed);
+  const yMax = Math.ceil(c.total / 1e5) * 1e5 || 1e5, x = (mo) => L + mo / T_ * (W - L - R), y = (v) => T + (1 - v / yMax) * (H - T - B);
+  let d = `M${x(0)} ${y(0)} L${x(0)} ${y(c.hw)}`;
+  for (let mo = 1; mo <= T_; mo++) d += ` L${x(mo)} ${y(val(mo))}`;
+  const area = d + ` L${x(T_)} ${y(0)} Z`;
+  const ticks = [0, yMax / 2, yMax].map(v => `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="#EEF0F2"/><text x="${L - 10}" y="${y(v) + 4}" text-anchor="end" font-size="12" fill="#6A7176">${v >= 1e6 ? "$" + (v / 1e6).toFixed(1) + "m" : "$" + Math.round(v / 1e3) + "k"}</text>`).join("");
+  const yrs = Array.from({ length: T_ / 12 + 1 }, (_, i) => `<text x="${x(i * 12)}" y="${H - 8}" text-anchor="middle" font-size="12" fill="#6A7176">${i ? "Yr " + i : "Start"}</text>`).join("");
+  const freeBand = c.free ? `<rect x="${x(T_ - c.free)}" y="${T}" width="${x(T_) - x(T_ - c.free)}" height="${H - T - B}" fill="var(--accSoft)"/><text x="${(x(T_ - c.free) + x(T_)) / 2}" y="${T - 6}" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--accD)">Free months</text>` : "";
+  $("chart").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Cumulative cost rises from ${fmt(c.hw)} at the start to ${fmt(c.total)} at month ${T_}">${ticks}${freeBand}<path d="${area}" fill="var(--acc)" opacity=".1"/><path d="${d}" fill="none" stroke="var(--acc)" stroke-width="2" stroke-linejoin="round"/><circle cx="${x(T_)}" cy="${y(c.total)}" r="4.5" fill="var(--acc)" stroke="#fff" stroke-width="2"/>${yrs}<line id="xh" y1="${T}" y2="${H - B}" stroke="#9AA1A6" stroke-dasharray="3 3" opacity="0"/><circle id="xd" r="4.5" fill="var(--acc)" stroke="#fff" stroke-width="2" opacity="0"/><rect x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent" id="hit"/></svg><div class="tip" id="tip"></div>`;
+  const svg = $("chart").querySelector("svg"), hit = $("hit"), tip = $("tip"), xh = $("xh"), xd = $("xd");
+  const move = (ev) => {
+    const r = svg.getBoundingClientRect(), px = (ev.clientX - r.left) / r.width * W;
+    const mo = Math.round(Math.min(T_, Math.max(0, (px - L) / (W - L - R) * T_))), v = val(mo);
+    xh.setAttribute("x1", x(mo)); xh.setAttribute("x2", x(mo)); xh.setAttribute("opacity", 1);
+    xd.setAttribute("cx", x(mo)); xd.setAttribute("cy", y(v)); xd.setAttribute("opacity", 1);
+    tip.style.left = (x(mo) / W * 100) + "%"; tip.style.top = (y(v) / H * r.height) + "px"; tip.style.opacity = 1;
+    tip.innerHTML = `Month ${mo} · <b>${fmt(v)}</b>`;
+  };
+  hit.addEventListener("pointermove", move);
+  hit.addEventListener("pointerleave", () => { tip.style.opacity = 0; xh.setAttribute("opacity", 0); xd.setAttribute("opacity", 0); });
+}
+
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.market && b.closest(".seg")) { const m = M[b.dataset.market]; Object.assign(S, { market: b.dataset.market, dev: m.dev, qty: m.qty, term: m.term, clamped: false }); }
+  else if (b.dataset.dev) S.dev = +b.dataset.dev;
+  else if (b.dataset.term) S.term = +b.dataset.term;
+  else if (b.dataset.tier) S.tier = b.dataset.tier;
+  else if (b.dataset.step) setQty(S.qty + (+b.dataset.step) * (S.qty >= 100 ? 10 : 1));
+  else if (b.id === "copy") { navigator.clipboard?.writeText($("shareUrl").value); b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy link", 1400); return; }
+  else return;
+  render();
+});
+function setQty(v) {
+  const [lo, hi] = BANDS[M[S.market].band];
+  const n = Math.round(+v || lo);
+  S.clamped = n < lo || n > hi;
+  S.qty = Math.min(hi, Math.max(lo, n));
+}
+$("qty").addEventListener("change", (e) => { setQty(e.target.value); render(); });
+render();
+</script>
+</body>
+</html>
